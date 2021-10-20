@@ -1,0 +1,24 @@
+{
+  "name": "tradingviewapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Aravindan22/TradingViewAPI.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Aravindan22/TradingViewAPI/issues"
+  },
+  "homepage": "https://github.com/Aravindan22/TradingViewAPI#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "trading-view-recommends-parser-nodejs": "^1.0.2",
+    "tslib": "^2.3.1"
+  }
+}
