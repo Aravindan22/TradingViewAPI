@@ -89,3 +89,9 @@ async function t() {
 // var intervalId = setInterval(function(){
 //     t()
 //   }, 100000);
+app.get("/",function (req,res) {
+  res.send("<h1>Hi Im working</h1>")
+})
+app.listen(process.env.PORT || 3000,function (req,res) {
+  console.log("Listening @3000");
+})
