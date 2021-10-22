@@ -9,7 +9,8 @@ var profit = 0;
 var flag = false;
 var bought_price = 0;
 var no_of_coins = 0;
-
+var asset_value=0;
+var total_profit=0;
 (async () => {
   const market = marketAPI();
 
@@ -48,6 +49,7 @@ function cal(cur_price, symbol) {
         no_of_coins = 10 / cur_price;
         console.log("Number Of coins =>", no_of_coins);
         prev_price = cur_price;
+        asset_value = no_of_coins * cur_price;
       }
     });
   }
@@ -63,14 +65,16 @@ async function buyOrSell() {
 }
 
 function master(cur_price) {
-  if ((cur_price * 100) / bought_price - 100 <= -2) {
+  if ((cur_price * 100) / bought_price - 100 <= -1) {
     console.log("SELL All the Coins | Asset Sold :", cur_price * no_of_coins);
+    total_profit += asset_value - (cur_price*no_of_coins);
+    no_of_coins=0;
   } else if ((cur_price * 100) / bought_price - 100 > 2) {
-    console.log(
-      "SELL ALL Coins Profit | Asset Sold :",
-      cur_price * no_of_coins
-    );
+    console.log("SELL ALL Coins Profit | Asset Sold :",cur_price * no_of_coins);
+    total_profit += asset_value - (cur_price*no_of_coins);
+    no_of_coins=0;
   }
+  asset_value=no_of_coins*cur_price;
 }
 
 var result = "";
@@ -90,7 +94,8 @@ async function t() {
 //     t()
 //   }, 100000);
 app.get("/",function (req,res) {
-  res.send("<h1>Hi Im working</h1>")
+  let s = "<h1>Asset Value :" +asset_value+"</h1><h1>Total Profit : "+total_profit+"</h1>";
+  res.send(s);
 })
 app.listen(process.env.PORT || 3000,function (req,res) {
   console.log("Listening @3000");
