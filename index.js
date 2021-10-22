@@ -1,8 +1,19 @@
 const express = require("express");
 const app = express();
-
+const winston = require('winston');
 const tvr = require("trading-view-recommends-parser-nodejs");
 const marketAPI = require("@mathieuc/tradingview");
+const { loggers } = require("winston");
+
+const logger = winston.createLogger({
+  format:winston.format.combine(winston.format.timestamp(),winston.format.printf((log)=>{
+    return `${log.timestamp} | ${log.message}`;
+  })),
+    transports: [
+      new winston.transports.Console(),
+      new winston.transports.File({ filename: 'data.log'})
+  ],
+});
 
 var prev_price = 0;
 var profit = 0;
@@ -14,6 +25,8 @@ var total_profit = 0;
 var no_of_ProfitTrades = 0;
 var no_of_LossTrades = 0;
 var result = "";
+var profit_percentage_threshold=2 |process.env.PROFIT_THRESHOLD;
+var loss_percentage_threshold =-1 |process.env.LOSS_THRESHOLD;
 
 (async () => {
   const market = marketAPI();
@@ -28,11 +41,13 @@ var result = "";
 
   market.on("price", (data) => {
     // console.log(data.symbol, '=>', data.price);
-    cal(data.price, data.symbol);
+
+    cal(data.price);
   });
 })();
 
 function cal(cur_price, symbol) {
+  console.log(cur_price);
   var prev_profit = 0;
   if (flag == true) {
     //   prev_profit = profit;
@@ -43,11 +58,11 @@ function cal(cur_price, symbol) {
     master(cur_price);
     // console.log("Current Price :",cur_price,"| Bought on :",bought_price,"| Profit:",(cur_price*no_of_coins)-(bought_price * no_of_coins));
     console.log(
-      "Asset Prev Value :",
-      bought_price * no_of_coins,
-      "| Current Asset Value :",
-      cur_price * no_of_coins,
-      "| Percentage diff",
+      "Asset Prev Value :"+
+      bought_price * no_of_coins+
+      "| Current Asset Value :"+
+      cur_price * no_of_coins+
+      "| Percentage diff"+
       (cur_price * 100) / bought_price - 100
     );
   } else {
@@ -57,7 +72,8 @@ function cal(cur_price, symbol) {
         flag = true;
         bought_price = cur_price;
         no_of_coins = 10 / cur_price;
-        console.log("Number Of coins =>", no_of_coins);
+        logger.info("Number Of coins =>"+no_of_coins);
+        logger.info("Coins Bought at "+bought_price);
         prev_price = cur_price;
         asset_value = no_of_coins * cur_price;
       }
@@ -75,14 +91,16 @@ async function buyOrSell() {
 }
 
 function master(cur_price) {
-  if ((cur_price * 100) / bought_price - 100 <= -0.5 && asset_value > 0) {
-    console.log("SELL All the Coins on LOSS| Asset Sold :",cur_price * no_of_coins );
+  if ((cur_price * 100) / bought_price - 100 <= loss_percentage_threshold && asset_value > 0) {
+    logger.info("Coins sold at "+cur_price);
+    logger.info("SELL All the Coins on LOSS| Asset Sold :"+cur_price * no_of_coins );
     total_profit += (cur_price * no_of_coins)-asset_value;
     no_of_coins = 0;
     no_of_LossTrades += 1;
     flag=false;
-  } else if ((cur_price * 100) / bought_price - 100 > 0.5) {
-    console.log("SELL ALL Coins Profit | Asset Sold :",cur_price * no_of_coins);
+  } else if ((cur_price * 100) / bought_price - 100 > profit_percentage_threshold) {
+    logger.info("Coins sold at "+cur_price);
+    logger.info("SELL ALL Coins Profit | Asset Sold :"+cur_price * no_of_coins);
     total_profit += (cur_price * no_of_coins)-asset_value;
     no_of_coins = 0;
     no_of_ProfitTrades += 1;
@@ -125,6 +143,8 @@ app.get("/", function (req, res) {
     <h3>Loss Trades : ` +
     no_of_LossTrades +
     `</h3>
+
+    <button>Download</button>
     <script>
     window.setInterval('refresh()', 2000); 	
     // Call a function every 1000 milliseconds 
@@ -138,7 +158,7 @@ app.get("/", function (req, res) {
     </body>
   </html>`;
   // let s = "<h1>Asset Value :" +asset_value+"</h1><h1>Total Profit : "+total_profit+"</h1>";
-  res.send(s);
+  res.send("ji");
 });
 app.listen(process.env.PORT || 3000, function (req, res) {
   console.log("Listening @3000");

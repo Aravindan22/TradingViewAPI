@@ -6,8 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node index.js"
-  }
-  ,
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Aravindan22/TradingViewAPI.git"
@@ -22,6 +21,7 @@
     "@mathieuc/tradingview": "^2.0.91",
     "express": "^4.17.1",
     "trading-view-recommends-parser-nodejs": "^1.0.2",
-    "tslib": "^2.3.1"
+    "tslib": "^2.3.1",
+    "winston": "^3.3.3"
   }
 }
