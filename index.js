@@ -158,7 +158,7 @@ app.get("/", function (req, res) {
     </body>
   </html>`;
   // let s = "<h1>Asset Value :" +asset_value+"</h1><h1>Total Profit : "+total_profit+"</h1>";
-  res.send("ji");
+  res.send(s);
 });
 app.listen(process.env.PORT || 3000, function (req, res) {
   console.log("Listening @3000");
