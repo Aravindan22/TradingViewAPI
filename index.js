@@ -94,7 +94,30 @@ async function t() {
 //     t()
 //   }, 100000);
 app.get("/",function (req,res) {
-  let s = "<h1>Asset Value :" +asset_value+"</h1><h1>Total Profit : "+total_profit+"</h1>";
+
+
+  let s =`<!DOCTYPE html>  <html lang="en"> <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta http-equiv="X-UA-Compatible" content="ie=edge">
+      <title>Tradey</title>
+    </head>
+    <body>
+    <h1>Asset Value :`+asset_value+`</h1>
+    <h1>Total Profit : `+total_profit+`</h1>
+    <script>
+    window.setInterval('refresh()', 2000); 	
+    // Call a function every 1000 milliseconds 
+    // (OR 1 second).
+
+    // Refresh or reload page.
+    function refresh() {
+        window .location.reload();
+    }
+    </script>
+    </body>
+  </html>`
+  // let s = "<h1>Asset Value :" +asset_value+"</h1><h1>Total Profit : "+total_profit+"</h1>";
   res.send(s);
 })
 app.listen(process.env.PORT || 3000,function (req,res) {
