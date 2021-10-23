@@ -19,6 +19,7 @@
   "homepage": "https://github.com/Aravindan22/TradingViewAPI#readme",
   "dependencies": {
     "@mathieuc/tradingview": "^2.0.91",
+    "dotenv": "^10.0.0",
     "express": "^4.17.1",
     "trading-view-recommends-parser-nodejs": "^1.0.2",
     "tslib": "^2.3.1",
