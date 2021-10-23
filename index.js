@@ -147,7 +147,7 @@ app.get("/", function (req, res) {
     no_of_LossTrades +
     `</h3>
 
-    <a href="data.log"><button>Download</button></a>
+    <a href="/viewlog"><button>See Log</button></a>
     <script>
     window.setInterval('refresh()', 3000); 	
     // Call a function every 1000 milliseconds 
@@ -174,6 +174,7 @@ app.get("/viewlog",function (req,res) {
     
   // })
   // res.send(logs);
+  trade_logs += `<a href="/"><button>Back</button></a>  `
   res.send(trade_logs);
 })
 app.listen(process.env.PORT || 3000, function (req, res) {
