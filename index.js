@@ -28,7 +28,7 @@ var result = "";
 var profit_percentage_threshold= process.env.PROFIT_THRESHOLD;
 var loss_percentage_threshold = process.env.LOSS_THRESHOLD;
 var current_asset_value = 0;
-var trade_logs="<a href="/"><button>Back</button></a>"
+var trade_logs=""
 trade_logs += "Profit_threshold :"+profit_percentage_threshold+"</br>";
 trade_logs += "Loss Thershold :"+loss_percentage_threshold+"</br>";
 (async () => {
@@ -175,7 +175,7 @@ app.get("/viewlog",function (req,res) {
   // })
   // res.send(logs);
 
-  res.send(trade_logs);
+  res.send(`<a href="/"><button>Back</button></a><br>`+trade_logs);
 })
 app.listen(process.env.PORT || 3000, function (req, res) {
   console.log("Listening @3000");
