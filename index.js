@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const fs = require("fs");
 const winston = require('winston');
 const tvr = require("trading-view-recommends-parser-nodejs");
 const marketAPI = require("@mathieuc/tradingview");
@@ -7,7 +8,7 @@ const { loggers } = require("winston");
 
 const logger = winston.createLogger({
   format:winston.format.combine(winston.format.timestamp(),winston.format.printf((log)=>{
-    return `${log.timestamp} | ${log.message}`;
+    return `* ${log.timestamp} | ${log.message}`;
   })),
     transports: [
       new winston.transports.Console(),
@@ -15,8 +16,6 @@ const logger = winston.createLogger({
   ],
 });
 
-var prev_price = 0;
-var profit = 0;
 var flag = false;
 var bought_price = 0;
 var no_of_coins = 0;
@@ -27,6 +26,7 @@ var no_of_LossTrades = 0;
 var result = "";
 var profit_percentage_threshold=2 |process.env.PROFIT_THRESHOLD;
 var loss_percentage_threshold =-1 |process.env.LOSS_THRESHOLD;
+var current_asset_value = 0;
 
 (async () => {
   const market = marketAPI();
@@ -40,45 +40,19 @@ var loss_percentage_threshold =-1 |process.env.LOSS_THRESHOLD;
   });
 
   market.on("price", (data) => {
-    // console.log(data.symbol, '=>', data.price);
-
     cal(data.price);
   });
 })();
 
-function cal(cur_price, symbol) {
-  console.log(cur_price);
-  var prev_profit = 0;
-  if (flag == true) {
-    //   prev_profit = profit;
-    // profit += (
-    //   (cur_price - prev_price)*no_of_coins
-    // )
 
-    master(cur_price);
-    // console.log("Current Price :",cur_price,"| Bought on :",bought_price,"| Profit:",(cur_price*no_of_coins)-(bought_price * no_of_coins));
-    console.log(
-      "Asset Prev Value :"+
-      bought_price * no_of_coins+
-      "| Current Asset Value :"+
-      cur_price * no_of_coins+
-      "| Percentage diff"+
-      (cur_price * 100) / bought_price - 100
-    );
-  } else {
-    console.log("Calling BuyOrSell");
-    buyOrSell().then((result) => {
-      if (result == true) {
-        flag = true;
-        bought_price = cur_price;
-        no_of_coins = 10 / cur_price;
-        logger.info("Number Of coins =>"+no_of_coins);
-        logger.info("Coins Bought at "+bought_price);
-        prev_price = cur_price;
-        asset_value = no_of_coins * cur_price;
-      }
-    });
-  }
+async function recommendation() {
+  result = await new tvr.TradingViewScan(
+    tvr.SCREENERS_ENUM["crypto"],
+    tvr.EXCHANGES_ENUM["BINANCE"],
+    "STPTUSDT",
+    tvr.INTERVALS_ENUM["1m"]
+  ).analyze();
+  return result.oscillators["RECOMMENDATION"];
 }
 
 async function buyOrSell() {
@@ -106,21 +80,39 @@ function master(cur_price) {
     no_of_ProfitTrades += 1;
     flag=false;
   }
-  asset_value = no_of_coins * cur_price;
+  current_asset_value = no_of_coins * cur_price;
+}
+
+function cal(cur_price, symbol) {
+  console.log("Cuurent Price",cur_price);
+  var prev_profit = 0;
+  if (flag == true) {
+    master(cur_price);
+    // console.log("Current Price :",cur_price,"| Bought on :",bought_price,"| Profit:",(cur_price*no_of_coins)-(bought_price * no_of_coins));
+    console.log(
+      "Asset Original Value :",
+      bought_price * no_of_coins,
+      "| Current Asset Value :",
+      cur_price * no_of_coins,
+      "| Percentage diff",
+      (cur_price * 100) / bought_price - 100
+    );
+  } else {
+    console.log("Calling BuyOrSell");
+    buyOrSell().then((result) => {
+      if (result == true) {
+        flag = true;
+        bought_price = cur_price;
+        no_of_coins = 10 / cur_price;
+        logger.info("Number Of coins =>"+no_of_coins);
+        logger.info("Coins Bought at "+bought_price);
+        asset_value = no_of_coins * cur_price;
+      }
+    });
+  }
 }
 
 
-async function recommendation() {
-  result = await new tvr.TradingViewScan(
-    tvr.SCREENERS_ENUM["crypto"],
-    tvr.EXCHANGES_ENUM["BINANCE"],
-    "STPTUSDT",
-    tvr.INTERVALS_ENUM["1m"]
-    // You can pass axios instance. It's optional argument (you can use it for pass custom headers or proxy)
-  ).analyze();
-
-  return result.oscillators["RECOMMENDATION"];
-}
 
 app.get("/", function (req, res) {
   let s =
@@ -132,7 +124,7 @@ app.get("/", function (req, res) {
     </head>
     <body>
     <h3>Asset Value :` +
-    asset_value +
+    current_asset_value +
     `</h3>
     <h3>Total Profit : ` +
     total_profit +
@@ -144,9 +136,9 @@ app.get("/", function (req, res) {
     no_of_LossTrades +
     `</h3>
 
-    <button>Download</button>
+    <a href="data.log"><button>Download</button></a>
     <script>
-    window.setInterval('refresh()', 2000); 	
+    window.setInterval('refresh()', 3000); 	
     // Call a function every 1000 milliseconds 
     // (OR 1 second).
 
@@ -160,6 +152,18 @@ app.get("/", function (req, res) {
   // let s = "<h1>Asset Value :" +asset_value+"</h1><h1>Total Profit : "+total_profit+"</h1>";
   res.send(s);
 });
+app.get("/log",function (req,res) {
+  res.download("data.log")
+})
+app.get("/viewlog",function (req,res) {
+  const content = fs.readFileSync("./data.log");
+  let logs ='';
+  content.toString().split("*").forEach((log)=>{
+    logs+=log+"</br>";
+    
+  })
+  res.send(logs);
+})
 app.listen(process.env.PORT || 3000, function (req, res) {
   console.log("Listening @3000");
 });
