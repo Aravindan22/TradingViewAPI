@@ -28,7 +28,7 @@ var result = "";
 var profit_percentage_threshold= process.env.PROFIT_THRESHOLD;
 var loss_percentage_threshold = process.env.LOSS_THRESHOLD;
 var current_asset_value = 0;
-var trade_logs="`<a href="/"><button>Back</button></a>"
+var trade_logs="<a href="/"><button>Back</button></a>"
 trade_logs += "Profit_threshold :"+profit_percentage_threshold+"</br>";
 trade_logs += "Loss Thershold :"+loss_percentage_threshold+"</br>";
 (async () => {
