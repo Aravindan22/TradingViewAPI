@@ -1,6 +1,13 @@
 const express = require("express");
 const app = express();
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({ extended: true }), function (req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "*");
+  next();
+});
 const fs = require("fs");
+const mongoose = require("mongoose");
 const winston = require('winston');
 const tvr = require("trading-view-recommends-parser-nodejs");
 const marketAPI = require("@mathieuc/tradingview");
@@ -16,6 +23,17 @@ const logger = winston.createLogger({
       new winston.transports.File({ filename: 'data.log'})
   ],
 });
+const MONGO_DB_URI = process.env.MONGO_DB_URI;
+
+mongoose.connect(MONGO_DB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const ObjectSchema = new mongoose.Schema({
+  log: { type: String },
+});
+const Object_ = mongoose.model("object", ObjectSchema);
 
 var flag = false;
 var bought_price = 0;
@@ -55,6 +73,7 @@ async function recommendation() {
     "STPTUSDT",
     tvr.INTERVALS_ENUM["1m"]
   ).analyze();
+  // console.log(result);
   return result.oscillators["RECOMMENDATION"];
 }
 
@@ -72,8 +91,8 @@ function master(cur_price) {
     trade_logs += "Coins sold at "+cur_price+"</br> ";
     trade_logs += "SELL All the Coins on LOSS| Asset Sold :"+cur_price * no_of_coins +"</br>";
 
-    logger.info("Coins sold at "+cur_price);
-    logger.info("SELL All the Coins on LOSS| Asset Sold :"+cur_price * no_of_coins );
+    insertLog("Coins sold at "+cur_price);
+    insertLog("SELL All the Coins on LOSS| Asset Sold :"+cur_price * no_of_coins );
     total_profit += (cur_price * no_of_coins)-asset_value;
     no_of_coins = 0;
     no_of_LossTrades += 1;
@@ -82,8 +101,8 @@ function master(cur_price) {
     trade_logs += "Coins sold at "+cur_price+"</br>";
     trade_logs += "SELL All the Coins on Profit| Asset Sold :"+cur_price * no_of_coins +"</br>";
 
-    logger.info("Coins sold at "+cur_price);
-    logger.info("SELL ALL Coins Profit | Asset Sold :"+cur_price * no_of_coins);
+    insertLog("Coins sold at "+cur_price);
+    insertLog("SELL ALL Coins Profit | Asset Sold :"+cur_price * no_of_coins);
     total_profit += (cur_price * no_of_coins)-asset_value;
     no_of_coins = 0;
     no_of_ProfitTrades += 1;
@@ -115,14 +134,34 @@ function cal(cur_price, symbol) {
         no_of_coins = 10 / cur_price;
         trade_logs += "No of coins bought" + no_of_coins +"</br>";
         trade_logs += "Coins Bought at "+bought_price + "</br>";
-        logger.info("Number Of coins =>"+no_of_coins);
-        logger.info("Coins Bought at "+bought_price);
+        insertLog("Number Of coins =>"+no_of_coins);
+        insertLog("Coins Bought at "+bought_price);
         asset_value = no_of_coins * cur_price;
       }
     });
   }
 }
 
+function insertLog(log) {
+  Object_.create({ log: log }, function (err1, result1) {
+    if (err1) {
+      console.log(err1);
+    }
+  });
+}
+function getLog(res){
+   Object_.find({},function(err,result){
+    if(err){
+        console.log(err);
+
+    }else if (result !==null){
+        result.forEach(element => {
+           trade_logs += element.log +"</br>";
+        });
+        return  res.send(`<a href="/"><button>Back</button></a><br>`+trade_logs);
+    }
+});
+}
 
 
 app.get("/", function (req, res) {
@@ -174,8 +213,8 @@ app.get("/viewlog",function (req,res) {
     
   // })
   // res.send(logs);
-
-  res.send(`<a href="/"><button>Back</button></a><br>`+trade_logs);
+  return getLog(res);
+  
 })
 app.listen(process.env.PORT || 3000, function (req, res) {
   console.log("Listening @3000");
