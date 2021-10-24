@@ -155,10 +155,11 @@ function getLog(res){
         console.log(err);
 
     }else if (result !==null){
+      logs ="";
         result.forEach(element => {
-           trade_logs += element.log +"</br>";
+           logs += element.log +"</br>";
         });
-        return  res.send(`<a href="/"><button>Back</button></a><br>`+trade_logs);
+        return  res.send(`<a href="/"><button>Back</button></a><br>`+logs);
     }
 });
 }
