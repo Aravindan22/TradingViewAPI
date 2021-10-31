@@ -14,6 +14,7 @@ const marketAPI = require("@mathieuc/tradingview");
 const { loggers } = require("winston");
 const dotenv = require('dotenv');
 dotenv.config();
+
 const logger = winston.createLogger({
   format:winston.format.combine(winston.format.timestamp(),winston.format.printf((log)=>{
     return `* ${log.timestamp} | ${log.message}`;
@@ -149,6 +150,7 @@ function insertLog(log) {
     }
   });
 }
+
 function getLog(res){
    Object_.find({},function(err,result){
     if(err){
