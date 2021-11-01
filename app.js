@@ -36,6 +36,8 @@ const ObjectSchema = new mongoose.Schema({
 });
 const Object_ = mongoose.model("object", ObjectSchema);
 
+var COIN = process.env.COIN +" "+process.env.BASECOIN;
+var COIN_1 = process.env.COIN+process.env.BASECOIN;
 var flag = false;
 var bought_price = 0;
 var no_of_coins = 0;
@@ -56,9 +58,9 @@ trade_logs += "Loss Thershold :"+loss_percentage_threshold+"</br>";
   market.on("logged", async () => {
     console.log("API LOGGED");
 
-    const searchBTC = (await market.search("STPT USDT", "crypto"))[0];
-    console.log("Found STPT / USDT:", searchBTC);
-    market.subscribe(searchBTC.id);
+    const searchCoin = (await market.search(COIN, "crypto"))[0];
+    console.log("Found :"+COIN, searchCoin );
+    market.subscribe(searchCoin.id);
   });
 
   market.on("price", (data) => {
@@ -71,7 +73,7 @@ async function recommendation() {
   result = await new tvr.TradingViewScan(
     tvr.SCREENERS_ENUM["crypto"],
     tvr.EXCHANGES_ENUM["BINANCE"],
-    "STPTUSDT",
+    COIN_1,
     tvr.INTERVALS_ENUM["1m"]
   ).analyze();
   // console.log(result);
