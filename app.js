@@ -37,7 +37,7 @@ const ObjectSchema = new mongoose.Schema({
 const Object_ = mongoose.model("object", ObjectSchema);
 
 var COIN = process.env.COIN +" "+process.env.BASECOIN;
-var COIN_1 = process.env.COIN+process.env.BASECOIN;
+var SYMBOL=""
 var flag = false;
 var bought_price = 0;
 var no_of_coins = 0;
@@ -58,7 +58,8 @@ trade_logs += "Loss Thershold :"+loss_percentage_threshold+"</br>";
   market.on("logged", async () => {
     console.log("API LOGGED");
 
-    const searchCoin = (await market.search(COIN, "crypto"))[0];
+    const searchCoin = (await market.search(COIN,"crypto"))[0];
+    SYMBOL = searchCoin.symbol;
     console.log("Found :"+COIN, searchCoin );
     market.subscribe(searchCoin.id);
   });
@@ -73,7 +74,7 @@ async function recommendation() {
   result = await new tvr.TradingViewScan(
     tvr.SCREENERS_ENUM["crypto"],
     tvr.EXCHANGES_ENUM["BINANCE"],
-    COIN_1,
+    SYMBOL,
     tvr.INTERVALS_ENUM["1m"]
   ).analyze();
   // console.log(result);
